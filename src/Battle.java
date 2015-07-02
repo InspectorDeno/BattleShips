@@ -129,7 +129,6 @@ public class Battle {
 						PvPvP = false;
 						String name = "";
 						System.out.println("Enter name of Player 1: ");
-						// boolean invalid = true;
 						while (!p1.ready) {
 							name = scan.nextLine();
 							if (name.isEmpty() || name.length() > 7) {
@@ -138,15 +137,15 @@ public class Battle {
 								p1.name = name;
 								p1.ready = true;
 							}
-							System.out.println("Enter name of Player 2: ");
-							while (!p2.ready) {
-								name = scan.nextLine();
-								if (name.isEmpty() || name.length() > 7) {
-									System.out.println(" Please enter a name between 1-7 characters");
-								} else {
-									p2.name = name;
-									p2.ready = true;
-								}
+						}
+						System.out.println("Enter name of Player 2: ");
+						while (!p2.ready) {
+							name = scan.nextLine();
+							if (name.isEmpty() || name.length() > 7) {
+								System.out.println(" Please enter a name between 1-7 characters");
+							} else {
+								p2.name = name;
+								p2.ready = true;
 							}
 						}
 						turns.add(p1);
@@ -167,22 +166,31 @@ public class Battle {
 							}
 						}
 						System.out.println(
-								"\t____Computer_Level____\n" +
-										"\t 1: So Dumb\n\t 2: Worthy Opponent\n" +
-										"\t______________________");
+								"\t____Computer_Level____\n"
+										+ "\t 1: So Dumb\n"
+										+ "\t 2: Worty Opponent\n"
+										+ "\t 3: Deep Blue\n"
+										+ "\t______________________");
 						while (!p2.ready) {
-							char iq = scan.nextLine().charAt(0);
-							switch (iq) {
-								case '1':
-									AI = new Bot(1);
-									p2.ready = true;
-									break;
-								case '2':
-									AI = new Bot(2);
-									p2.ready = true;
-									break;
-								default:
-									System.out.println("Enter 1 or 2");
+							try {
+								char iq = scan.nextLine().charAt(0);
+								switch (iq) {
+									case '1':
+										AI = new Bot(1);
+										p2.ready = true;
+										break;
+									case '2':
+										AI = new Bot(2);
+										p2.ready = true;
+										break;
+									case '3':
+										AI = new Bot(3);
+										p2.ready = true;
+									default:
+										System.out.println(" Enter 1, 2 or 3");
+								}
+							} catch (StringIndexOutOfBoundsException e) {
+								System.out.println(" Enter something");
 							}
 						}
 						p2 = AI;
@@ -247,87 +255,94 @@ public class Battle {
 				System.out.println(" Enter something");
 			}
 		}
-		System.out.println(
-				"\t______Board_Size______\n" +
-						"\t 1: Small\n\t 2: Medium\n\t 3: Large\n" +
-						"\t______________________\n");
+		System.out.println("\t______Board_Size______\n" + "\t 1: Small\n\t 2: Medium\n\t 3: Large\n"
+				+ "\t______________________\n");
+
 		boolean chosenSize = false;
 		while (!chosenSize) {
-			char size = scan.nextLine().charAt(0);
-			switch (size) {
-				case '1':
-					numOfShips = 3;
-					boardSize = 6;
-					p1.ships.add(new Ship(1));
-					p1.ships.add(new Ship(3));
-					p1.ships.add(new Ship(4));
-					p2.ships.add(new Ship(1));
-					p2.ships.add(new Ship(3));
-					p2.ships.add(new Ship(4));
-					p3.ships.add(new Ship(1));
-					p3.ships.add(new Ship(3));
-					p3.ships.add(new Ship(4));
-					chosenSize = true;
-					break;
-				case '2':
-					numOfShips = 4;
-					boardSize = 8;
-					p1.ships.add(new Ship(1));
-					p1.ships.add(new Ship(2));
-					p1.ships.add(new Ship(4));
-					p1.ships.add(new Ship(5));
-					p2.ships.add(new Ship(1));
-					p2.ships.add(new Ship(2));
-					p2.ships.add(new Ship(4));
-					p2.ships.add(new Ship(5));
-					p3.ships.add(new Ship(1));
-					p3.ships.add(new Ship(2));
-					p3.ships.add(new Ship(4));
-					p3.ships.add(new Ship(5));
-					chosenSize = true;
-					break;
-				case '3':
-					numOfShips = 5;
-					boardSize = 10;
-					p1.ships.add(new Ship(1));
-					p1.ships.add(new Ship(2));
-					p1.ships.add(new Ship(3));
-					p1.ships.add(new Ship(4));
-					p1.ships.add(new Ship(5));
-					p2.ships.add(new Ship(1));
-					p2.ships.add(new Ship(2));
-					p2.ships.add(new Ship(3));
-					p2.ships.add(new Ship(4));
-					p2.ships.add(new Ship(5));
-					p3.ships.add(new Ship(1));
-					p3.ships.add(new Ship(2));
-					p3.ships.add(new Ship(3));
-					p3.ships.add(new Ship(4));
-					p3.ships.add(new Ship(5));
-					chosenSize = true;
-					break;
-				case 'H': // IQTest
-					numOfShips = 5;
-					boardSize = 8;
-					p1.ships.add(new Ship(6));
-					p1.ships.add(new Ship(7));
-					p1.ships.add(new Ship(8));
-					p1.ships.add(new Ship(9));
-					p1.ships.add(new Ship(10));
-					p2.ships.add(new Ship(1));
-					p2.ships.add(new Ship(2));
-					p2.ships.add(new Ship(3));
-					p2.ships.add(new Ship(4));
-					p2.ships.add(new Ship(5));
-					chosenSize = true;
-				default:
-					System.out.println(" Enter 1, 2 or 3");
+			try {
+				char size = scan.nextLine().charAt(0);
+				switch (size) {
+					case '1':
+						numOfShips = 3;
+						boardSize = 6;
+						p1.ships.add(new Ship(1));
+						p1.ships.add(new Ship(3));
+						p1.ships.add(new Ship(4));
+						p2.ships.add(new Ship(1));
+						p2.ships.add(new Ship(3));
+						p2.ships.add(new Ship(4));
+						p3.ships.add(new Ship(1));
+						p3.ships.add(new Ship(3));
+						p3.ships.add(new Ship(4));
+						chosenSize = true;
+						break;
+					case '2':
+						numOfShips = 4;
+						boardSize = 8;
+						p1.ships.add(new Ship(1));
+						p1.ships.add(new Ship(2));
+						p1.ships.add(new Ship(4));
+						p1.ships.add(new Ship(5));
+						p2.ships.add(new Ship(1));
+						p2.ships.add(new Ship(2));
+						p2.ships.add(new Ship(4));
+						p2.ships.add(new Ship(5));
+						p3.ships.add(new Ship(1));
+						p3.ships.add(new Ship(2));
+						p3.ships.add(new Ship(4));
+						p3.ships.add(new Ship(5));
+						chosenSize = true;
+						break;
+					case '3':
+						numOfShips = 5;
+						boardSize = 10;
+						p1.ships.add(new Ship(1));
+						p1.ships.add(new Ship(2));
+						p1.ships.add(new Ship(3));
+						p1.ships.add(new Ship(4));
+						p1.ships.add(new Ship(5));
+						p2.ships.add(new Ship(1));
+						p2.ships.add(new Ship(2));
+						p2.ships.add(new Ship(3));
+						p2.ships.add(new Ship(4));
+						p2.ships.add(new Ship(5));
+						p3.ships.add(new Ship(1));
+						p3.ships.add(new Ship(2));
+						p3.ships.add(new Ship(3));
+						p3.ships.add(new Ship(4));
+						p3.ships.add(new Ship(5));
+						chosenSize = true;
+						break;
+					case 'H': // IQTest
+						numOfShips = 5;
+						boardSize = 8;
+						p1.ships.add(new Ship(6));
+						p1.ships.add(new Ship(7));
+						p1.ships.add(new Ship(8));
+						p1.ships.add(new Ship(9));
+						p1.ships.add(new Ship(10));
+						p2.ships.add(new Ship(1));
+						p2.ships.add(new Ship(2));
+						p2.ships.add(new Ship(3));
+						p2.ships.add(new Ship(4));
+						p2.ships.add(new Ship(5));
+						chosenSize = true;
+					default:
+						System.out.println(" Enter 1, 2 or 3");
+				}
+			} catch (StringIndexOutOfBoundsException e) {
+				System.out.println(" Enter something");
 			}
 		}
 		p1.board = new BoardPiece[boardSize][boardSize];
 		p2.board = new BoardPiece[boardSize][boardSize];
 		p3.board = new BoardPiece[boardSize][boardSize];
-		for (int i = 0; i < p1.board.length; i++) {
+		for (
+
+		int i = 0; i < p1.board.length; i++)
+
+		{
 			for (int j = 0; j < p1.board[0].length; j++) {
 				p1.board[i][j] = new BoardPiece();
 				p2.board[i][j] = new BoardPiece();
@@ -340,6 +355,7 @@ public class Battle {
 		p1.ready = false;
 		p2.ready = false;
 		p3.ready = false;
+
 	}
 
 	private void printBoard() {
@@ -521,6 +537,7 @@ public class Battle {
 		public BoardPiece[][] board;
 		public List<Ship> ships;
 		public LinkedHashMap<Integer, String> hitList;
+		public HashMap<Integer, List<String>> hints;
 		public boolean ready;
 		public boolean shotOnce;
 		public boolean gameIsOver;
@@ -537,6 +554,7 @@ public class Battle {
 			board = new BoardPiece[boardSize][boardSize];
 			ships = new ArrayList<Ship>();
 			hitList = new LinkedHashMap<Integer, String>();
+			hints = new HashMap<Integer, List<String>>();
 			ready = false;
 			shotOnce = false;
 			gameIsOver = false;
@@ -623,13 +641,13 @@ public class Battle {
 
 						}
 					} else if (input.length() == 6) {
-						int number = input.charAt(0) - 49; // = 1,2,3,4,5
+						int n = input.charAt(0) - 49; // = 1,2,3,4,5
 						int row = input.charAt(2) - 65; // A=0 ... J=9
 						int col = input.charAt(3) - 48; // 0=0 ... 9=9
 						char layout = input.charAt(5); // H or V
 
-						if (number > (numOfShips - 1) || number < 0) { // Ship number between 1 and
-																		// numOfShips
+						if (n > (numOfShips - 1) || n < 0) { // Ship number between 1 and
+																// numOfShips
 							System.out.println(" Invalid ship type");
 						} else if (row >= boardSize) {
 							System.out.println(" Invalid row");
@@ -641,14 +659,14 @@ public class Battle {
 							// Valid row and column - check if the ship fits
 						} else {
 							// Doesn't fit
-							if (layout == 'H' && ships.get(number).size > (boardSize - col)) {
+							if (layout == 'H' && ships.get(n).size > (boardSize - col)) {
 								System.out.println(" Invalid Horizontal Placement. Not enough room.");
 								// Doesn't fit
-							} else if (layout == 'V' && ships.get(number).size > (boardSize - row)) {
+							} else if (layout == 'V' && ships.get(n).size > (boardSize - row)) {
 								System.out.println(" Invalid Vertical Placement. Not enough room.");
 								// Valid placement! Except overlap
 							} else {
-								placeOnBoard(this, layout, ships.get(number), input.substring(2, 4));
+								placeOnBoard(this, layout, ships.get(n), input.substring(2, 4));
 								printBoard();
 							}
 						}
@@ -660,8 +678,7 @@ public class Battle {
 							System.out.println(" Type 'D' if you are Done");
 							said = true;
 						}
-					}
-					else {
+					} else {
 						System.out.println(" Invalid input, try again");
 					}
 				} catch (StringIndexOutOfBoundsException e) {
@@ -808,11 +825,21 @@ public class Battle {
 						valid = "";
 						System.out.println(" Enter move: ");
 						input = scan.nextLine();
-						if (input.charAt(0) == 'S') {
-							shipsLeft();
+						if (input.length() == 1) {
+							char choise = input.charAt(0);
+							switch (choise) {
+								case 'H':
+									System.out.println(" HINT: " + getHint() + " looks good");
+									break;
+								case 'S':
+									shipsLeft();
+									break;
+								default:
+							}
 						} else {
 							valid = checkMove(input);
 						}
+
 						if (valid != "ok") {
 							System.out.println(valid);
 						}
@@ -845,11 +872,21 @@ public class Battle {
 						valid = "";
 						System.out.println(" Enter move: ");
 						input = scan.nextLine();
-						if (input.charAt(0) == 'S') {
-							shipsLeft();
+						if (input.length() == 1) {
+							char choise = input.charAt(0);
+							switch (choise) {
+								case 'H':
+									System.out.println(" HINT: " + getHint() + " looks good");
+									break;
+								case 'S':
+									shipsLeft();
+									break;
+								default:
+							}
 						} else {
 							valid = checkMove(input);
 						}
+
 						if (valid != "ok") {
 							System.out.println(valid);
 						}
@@ -875,9 +912,17 @@ public class Battle {
 					} else {
 						input = AImove();
 					}
-					// displays shipsLeft
-					if (input.charAt(0) == 'S') {
-						shipsLeft();
+					if (input.length() == 1) {
+						char choise = input.charAt(0);
+						switch (choise) {
+							case 'H':
+								System.out.println(" HINT: " + getHint() + " looks good");
+								break;
+							case 'S':
+								shipsLeft();
+								break;
+							default:
+						}
 					} else {
 						valid = checkMove(input);
 					}
@@ -900,7 +945,116 @@ public class Battle {
 			}
 		}
 
+		private String getHint() {
+			Player their = new Player();
+
+			if (gameMode == 1 || gameMode == 2) {
+				their = turns.peekLast();
+			} else if (gameMode == 3) {
+				turns.pop();
+				if (turn == 1) {
+					if (shotOnce) {
+						their = turns.peekLast();
+					} else {
+						their = turns.peekFirst();
+					}
+				} else {
+					if (shotOnce) {
+						their = turns.peekFirst();
+					} else {
+						their = turns.peekLast();
+					}
+				}
+				turns.addFirst(this);
+			}
+
+			Iterator<Ship> it = their.ships.iterator();
+			boolean overlap;
+			// reset values
+			for (int row = 0; row < boardSize; row++) {
+				for (int col = 0; col < boardSize; col++) {
+					their.board[row][col].prob = 0;
+				}
+			}
+			// Evaluate whole board for all ships left
+			while (it.hasNext()) {
+				Ship current = it.next();
+				if (!current.destroyed) {
+					
+//					System.out.println("\n"+current.name);
+					for (int row = 0; row < boardSize; row++) {
+						for (int col = 0; col < boardSize; col++) {
+							overlap = false;
+							// Horizontal placement
+							if ((col + current.size) > boardSize) {
+								overlap = true;
+							} else {
+								// Checks overlap
+								for (int x = col; x < (current.size + col); x++) {
+									if (their.board[row][x].selected) {
+										overlap = true;
+									}
+								}
+							}
+							if (!overlap) {
+								// Add probability to these squares
+								for (int x = col; x < (current.size + col); x++) {
+									their.board[row][x].prob++;
+								}
+							}
+							overlap = false;
+							// Vertical placement
+							if ((row + current.size) > boardSize) {
+								overlap = true;
+							} else {
+								// Checks overlap
+								for (int y = row; y < (current.size + row); y++) {
+									if (their.board[y][col].selected) {
+										overlap = true;
+									}
+								}
+							}
+							if (!overlap) {
+								// Add probability to these squares
+								for (int y = row; y < (current.size + row); y++) {
+									their.board[y][col].prob++;
+								}
+							}
+//							System.out.printf("%5s",their.board[row][col].prob);
+						}
+//						System.out.println();
+					}
+				}
+			}
+			int i = 0;
+			String max = "";
+			hints.clear();
+			String hint = "";
+			List<String> coords = new ArrayList<String>();
+			for (int row = 0; row < boardSize; row++) {
+				for (int col = 0; col < boardSize; col++) {
+					if (their.board[row][col].prob > i) {
+						coords.clear();
+						i = their.board[row][col].prob;
+
+						max = String.valueOf((char) (row + 65)) + String.valueOf((char) (col + 48));
+						coords.add(max);
+					} else if (their.board[row][col].prob == i) {
+						i = their.board[row][col].prob;
+						max = String.valueOf((char) (row + 65)) + String.valueOf((char) (col + 48));
+						coords.add(max);
+					}
+				}
+			}
+			int index = random.nextInt(coords.size());
+			hint = coords.get(index);
+			return hint;
+		}
+
 		private String AImove() {
+			int nextRow = 0;
+			int nextCol = 0;
+			String nextMove = "";
 			// IQ 1 = fire randomly
 			if (AI.IQ == 1) {
 				int row = 0;
@@ -911,10 +1065,7 @@ public class Battle {
 				// col += 48; // 0=0 ... 1=1
 				String move = String.valueOf((char) row) + String.valueOf((char) col);
 				return move;
-			} else { // IQ 2
-				int nextRow = 0;
-				int nextCol = 0;
-				String nextMove = "";
+			} else if (AI.IQ == 2) { // IQ 2
 
 				if (p2.hitList.isEmpty()) { // go random
 					nextRow = random.nextInt(boardSize); // [0,boardSize)
@@ -923,6 +1074,54 @@ public class Battle {
 					nextCol += 48; // 0=0 ... 1=1
 					nextMove = String.valueOf((char) nextRow) + String.valueOf((char) nextCol);
 					// Hitlist isn't empty
+				} else {
+					String first = p2.hitList.get(AI.targetType);
+					// First hit position of active ship
+					int firstRow = first.charAt(0);
+					int firstCol = first.charAt(1);
+					// Latest move
+					String last = AI.lastMove;
+					int lastRow = last.charAt(0);
+					int lastCol = last.charAt(1);
+					Ship hitShip = new Ship();
+
+					// Find the active ship
+					for (Ship ship : p1.ships) {
+						if (ship.type == AI.targetType) {
+							hitShip = ship;
+						}
+						// Got it
+					}
+					// IF AI hit their previous shot
+					if (AI.justHit) {
+						// Keep going from where they hit
+						nextRow = lastRow;
+						nextCol = lastCol;
+						// else go to where they first did
+					} else {
+						nextRow = firstRow;
+						nextCol = firstCol;
+						// If targetted ship was only hit once
+						if (hitShip.hitCount == 1) {
+							// Keep resetting if we missed a target ship more than twice in a row
+							if (AI.reset) {
+								nextDirection = random.nextInt(4);
+								// We hit a wall or a used square, turn around
+							} else {
+								nextDirection = AI.change(AI.direction);
+							}
+							// It's been hit multiple times, turn around.
+						} else {
+							nextDirection = AI.change(AI.direction);
+						}
+					}
+					nextMove = AI.traverse(nextRow, nextCol, nextDirection);
+				}
+				return nextMove;
+			} else { // IQ == 3
+				if (p2.hitList.isEmpty()) { 
+					// Calculate Best location
+					return getHint();
 				} else {
 					String first = p2.hitList.get(AI.targetType);
 					// First hit position of active ship
@@ -1046,8 +1245,7 @@ public class Battle {
 						AI.justHit = false;
 						AI.reset = true;
 						return "AI no!";
-					}
-					else if (p1.board[row][col].selected) {
+					} else if (p1.board[row][col].selected) {
 						return "AI stop.";
 					}
 				}
@@ -1069,11 +1267,10 @@ public class Battle {
 			if (gameMode == 1 || gameMode == 3) {
 
 				if (gameMode == 1) {
-					our = turns.peek();
+					our = turns.peekFirst();
 					their = turns.peekLast();
 					shipType = their.board[row][col].type;
-				}
-				else if (gameMode == 3) {
+				} else if (gameMode == 3) {
 
 					our = turns.pop();
 					if (turn == 1) { // To avoid multiple hits
@@ -1501,15 +1698,17 @@ public class Battle {
 		public String piece;
 		public boolean used;
 		public boolean selected;
-		public int type;
 		public boolean hidden;
+		public int type;
+		public int prob;
 
 		BoardPiece() {
 			piece = "_";
 			used = false;
 			selected = false;
-			type = 0;
 			hidden = false;
+			type = 0;
+			prob = 0;
 		}
 	}
 
