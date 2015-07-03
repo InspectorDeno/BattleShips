@@ -7,32 +7,54 @@ public class Battle {
 	public static int gameMode;
 	public static int boardSize;
 	public static int numOfShips;
-	public static int nextDirection;
 	public static boolean PvPvP;
 	public static boolean gameOver;
 	public static boolean autoPlace;
 	public static boolean firstGame;
 	public LinkedList<Player> turns;
-	public Player p1 = new Player();
-	public Player p2 = new Player();
-	public Player p3 = new Player();
+	public Player p1, p2, p3;
 	public Bot AI, AI2;
+	public Player our = new Player();
+	public Player their = new Player();
 
 	public static void main(String[] args) {
 		Battle game = new Battle();
 		firstGame = true;
-		String again = "";
+		String input = "";
+		boolean again = true;
+		boolean valid = false;
 
 		System.out.println(
 				"\n\t WELCOME TO BATTLESHIPS!\n\n" +
 						" ›Enter the corresponding number to make a selection‹\n");
 		do {
 			game.play();
-			System.out.println("\n Do you want to play again? (Y/N):");
-			again = scan.nextLine();
 			firstGame = false;
-		} while (again.charAt(0) == 'Y');
+			System.out.println("\n Do you want to play again? (Y/N):");
+			while (!valid) {
+				valid = false;
 
+				try {
+					input = scan.nextLine();
+					char c = input.charAt(0);
+					switch (c) {
+						case 'Y':
+							valid = true;
+							again = true;
+							break;
+						case 'N':
+							valid = true;
+							again = false;
+							break;
+						default:
+							valid = false;
+							System.out.println(" Enter something");
+					}
+				} catch (StringIndexOutOfBoundsException e) {
+					System.out.println(" Enter something");
+				}
+			}
+		} while (again);
 		System.out.println("\n Thanks for playing! Good bye!");
 		scan.close();
 	}
@@ -63,10 +85,22 @@ public class Battle {
 			case 3:
 				printBoard();
 				p1.placeShips();
-				p1.hideShips();
-				p2.placeShips();
+				if (!p2.bot || !p3.bot) { // Hide ships if another player
+					p1.hideShips();
+				}
+				if (!p2.bot) {
+					p2.placeShips();
+				} else { // Autoplace if bot
+					autoPlace = true;
+					p2.AIplaceShips();
+				}
 				p2.hideShips();
-				p3.placeShips();
+				if (!p3.bot) {
+					p3.placeShips();
+				} else { // Autoplace if bot
+					autoPlace = true;
+					p3.AIplaceShips();
+				}
 				p3.hideShips();
 				System.out.println("\n All players are ready,"
 						+ " let the battle begin!\n\n"
@@ -84,19 +118,38 @@ public class Battle {
 				break;
 		}
 		while (!gameOver) {
-			if (gameMode == 1 || gameMode == 2) {
+			if (gameMode == 1) {
+				if (turn == 1) {
+					p1.move();
+					printBoard();
+				} else {
+					p2.move();
+					printBoard();
+				}
+			} else if (gameMode == 2 || gameMode == 4) {
 				if (turn == 1) {
 					p1.move();
 				} else {
 					p2.move();
+					printBoard();
 				}
 			} else if (gameMode == 3) { // 3 Player Game
 				if (turn == 1) {
 					p1.move();
+					printBoard();
 				} else if (turn == 2) {
 					p2.move();
+					if (!p2.bot) {
+						printBoard();
+					}
 				} else {
 					p3.move();
+					// shotOnce is reset after two shots
+					if (p3.bot && !p3.shotOnce) {
+						printBoard();
+					} else if (!p3.bot) {
+						printBoard();
+					}
 				}
 			}
 		}
@@ -110,14 +163,11 @@ public class Battle {
 						"\t 1: Player vs Player \n" +
 						"\t 2: Player vs Computer\n" +
 						"\t 3: 3 Player Game\n" +
-						// "\t 4: Computer vs Computer\n" +
+						"\t 4: Computer vs Computer\n" +
 						"\t______________________");
 		p1 = new Player();
 		p2 = new Player();
 		p3 = new Player();
-		p1.number = 1;
-		p2.number = 2;
-		p3.number = 3;
 		turns = new LinkedList<Player>();
 
 		while (!chosenMode) {
@@ -126,75 +176,16 @@ public class Battle {
 				switch (mode) {
 					case '1': // Player vs Player
 						gameMode = 1;
-						PvPvP = false;
-						String name = "";
-						System.out.println("Enter name of Player 1: ");
-						while (!p1.ready) {
-							name = scan.nextLine();
-							if (name.isEmpty() || name.length() > 7) {
-								System.out.println(" Please enter a name between 1-7 characters");
-							} else {
-								p1.name = name;
-								p1.ready = true;
-							}
-						}
-						System.out.println("Enter name of Player 2: ");
-						while (!p2.ready) {
-							name = scan.nextLine();
-							if (name.isEmpty() || name.length() > 7) {
-								System.out.println(" Please enter a name between 1-7 characters");
-							} else {
-								p2.name = name;
-								p2.ready = true;
-							}
-						}
+						addPlayer(p1, 1);
+						addPlayer(p2, 2);
 						turns.add(p1);
 						turns.add(p2);
 						chosenMode = true;
 						break;
 					case '2': // Player vs Bot
-						PvPvP = false;
 						gameMode = 2;
-						System.out.println(" Enter your name: ");
-						while (!p1.ready) {
-							name = scan.nextLine();
-							if (name.isEmpty() || name.length() > 7) {
-								System.out.println(" Please enter a name between 1-7 characters");
-							} else {
-								p1.name = name;
-								p1.ready = true;
-							}
-						}
-						System.out.println(
-								"\t____Computer_Level____\n"
-										+ "\t 1: So Dumb\n"
-										+ "\t 2: Worty Opponent\n"
-										+ "\t 3: Deep Blue\n"
-										+ "\t______________________");
-						while (!p2.ready) {
-							try {
-								char iq = scan.nextLine().charAt(0);
-								switch (iq) {
-									case '1':
-										AI = new Bot(1);
-										p2.ready = true;
-										break;
-									case '2':
-										AI = new Bot(2);
-										p2.ready = true;
-										break;
-									case '3':
-										AI = new Bot(3);
-										p2.ready = true;
-									default:
-										System.out.println(" Enter 1, 2 or 3");
-								}
-							} catch (StringIndexOutOfBoundsException e) {
-								System.out.println(" Enter something");
-							}
-						}
-						p2 = AI;
-						p2.number = 2;
+						addPlayer(p1, 1);
+						addBot(AI, 2);
 						turns.add(p1);
 						turns.add(p2);
 						chosenMode = true;
@@ -202,35 +193,36 @@ public class Battle {
 					case '3': // 3 Player Game
 						gameMode = 3;
 						PvPvP = true;
-						name = "";
-						System.out.println(" Enter name of Player 1: ");
-						while (!p1.ready) {
-							name = scan.nextLine();
-							if (name.isEmpty() || name.length() > 7) {
-								System.out.println(" Please enter a name between 1-7 characters");
-							} else {
-								p1.name = name;
-								p1.ready = true;
-							}
-						}
-						System.out.println(" Enter name of Player 2: ");
-						while (!p2.ready) {
-							name = scan.nextLine();
-							if (name.isEmpty() || name.length() > 7) {
-								System.out.println(" Please enter a name between 1-7 characters");
-							} else {
-								p2.name = name;
-								p2.ready = true;
-							}
-						}
-						System.out.println(" Enter name of Player 3: ");
-						while (!p3.ready) {
-							name = scan.nextLine();
-							if (name.isEmpty() || name.length() > 7) {
-								System.out.println(" Please enter a name between 1-7 characters");
-							} else {
-								p3.name = name;
-								p3.ready = true;
+						System.out.println(
+								"\t_______Game_Mode______\n" +
+										"\t 1: Players Only\n" +
+										"\t 2: One Computer\n" +
+										"\t 3: Two Computers\n" +
+										"\t______________________");
+						boolean chosen3 = false;
+						while (!chosen3) {
+							char mode3 = scan.nextLine().charAt(0);
+							switch (mode3) { // PvPvP
+								case '1':
+									addPlayer(p1, 1);
+									addPlayer(p2, 2);
+									addPlayer(p3, 3);
+									chosen3 = true;
+									break;
+								case '2': // PvPvAI
+									addPlayer(p1, 1);
+									addPlayer(p2, 2);
+									addBot(AI, 3);
+									chosen3 = true;
+									break;
+								case '3': // PvAIvAI
+									addPlayer(p1, 1);
+									addBot(AI, 2);
+									addBot(AI2, 3);
+									p3.name = "Amigo";
+									chosen3 = true;
+									break;
+								default:
 							}
 						}
 						turns.add(p1);
@@ -239,24 +231,32 @@ public class Battle {
 						chosenMode = true;
 						break;
 
-					case '4': // Bot vs Bot, not fully implemented
+					case '4': // AI vs AI
 						gameMode = 4;
-						AI = new Bot(2);
-						AI2 = new Bot(2);
-						AI2.name = "DeepRed";
-						p1 = AI;
-						p2 = AI2;
+						addBot(AI, 1);
+						addBot(AI2, 2);
+						p2.name = "R2D2";
+						turns.add(p1);
+						turns.add(p2);
 						chosenMode = true;
 						break;
 					default:
-						System.out.println(" Enter 1,2 or 3");
+						System.out.println(" Enter 1, 2, 3 or 4");
 				}
 			} catch (StringIndexOutOfBoundsException e) {
 				System.out.println(" Enter something");
 			}
 		}
-		System.out.println("\t______Board_Size______\n" + "\t 1: Small\n\t 2: Medium\n\t 3: Large\n"
-				+ "\t______________________\n");
+		p1.number = 1;
+		p2.number = 2;
+		p3.number = 3;
+
+		System.out.println(
+				"\t______Board_Size______\n"
+						+ "\t 1: Small\n"
+						+ "\t 2: Medium\n"
+						+ "\t 3: Large\n"
+						+ "\t______________________\n");
 
 		boolean chosenSize = false;
 		while (!chosenSize) {
@@ -264,8 +264,8 @@ public class Battle {
 				char size = scan.nextLine().charAt(0);
 				switch (size) {
 					case '1':
-						numOfShips = 3;
 						boardSize = 6;
+						numOfShips = 3;
 						p1.ships.add(new Ship(1));
 						p1.ships.add(new Ship(3));
 						p1.ships.add(new Ship(4));
@@ -338,11 +338,8 @@ public class Battle {
 		p1.board = new BoardPiece[boardSize][boardSize];
 		p2.board = new BoardPiece[boardSize][boardSize];
 		p3.board = new BoardPiece[boardSize][boardSize];
-		for (
 
-		int i = 0; i < p1.board.length; i++)
-
-		{
+		for (int i = 0; i < p1.board.length; i++) {
 			for (int j = 0; j < p1.board[0].length; j++) {
 				p1.board[i][j] = new BoardPiece();
 				p2.board[i][j] = new BoardPiece();
@@ -352,10 +349,95 @@ public class Battle {
 		// Reset these
 		turn = 1;
 		gameOver = false;
-		p1.ready = false;
-		p2.ready = false;
-		p3.ready = false;
+	}
 
+	private void addPlayer(Player p, int i) {
+		String name = "";
+		String message = "Enter your name: ";
+		if (gameMode != 2) {
+			message = "Enter name of Player " + i + ": ";
+		}
+		System.out.println(message);
+		boolean ready = false;
+		while (!ready) {
+			name = scan.nextLine();
+			if (name.isEmpty() || name.length() > 7) {
+				System.out.println(" Please enter a name between 1-7 characters");
+			} else {
+				p.name = name;
+				ready = true;
+			}
+		}
+	}
+
+	private void addBot(Bot bot, int i) {
+		if (PvPvP) {
+			System.out.println(
+					"\t____Computer_Level____\n"
+							+ "\t 1: So Dumb\n"
+							+ "\t 2: Clever\n"
+							+ "\t______________________");
+		} else {
+			System.out.println(
+					"\t____Computer_Level____\n"
+							+ "\t 1: So Dumb\n"
+							+ "\t 2: Clever\n"
+							+ "\t 3: Worty Opponent\n"
+							+ "\t 4: Deep Blue\n"
+							+ "\t______________________");
+		}
+		boolean ready = false;
+		while (!ready) {
+			try {
+				char iq = scan.nextLine().charAt(0);
+				switch (iq) {
+					case '1':
+						bot = new Bot(1);
+						ready = true;
+						break;
+					case '2':
+						bot = new Bot(2);
+						ready = true;
+						break;
+					case '3':
+						bot = new Bot(3);
+						if (PvPvP) {
+							System.out.println(" Enter 1 or 2");
+							;
+						} else {
+							ready = true;
+						}
+						break;
+					case '4':
+						bot = new Bot(4);
+						if (PvPvP) {
+							System.out.println(" Enter 1 or 2");
+							;
+						} else {
+							ready = true;
+						}
+						break;
+					default:
+						System.out.println(" Enter a valid number");
+				}
+			} catch (StringIndexOutOfBoundsException e) {
+				System.out.println(" Enter something");
+			}
+		}
+		switch (i) {
+			case 1:
+				p1 = bot;
+				p1.bot = true;
+				break;
+			case 2:
+				p2 = bot;
+				p2.bot = true;
+				break;
+			case 3:
+				p3 = bot;
+				p3.bot = true;
+				break;
+		}
 	}
 
 	private void printBoard() {
@@ -532,12 +614,13 @@ public class Battle {
 		System.out.println(result);
 	}
 
-	class Player {
+	public class Player {
 		public String name;
 		public BoardPiece[][] board;
 		public List<Ship> ships;
 		public LinkedHashMap<Integer, String> hitList;
 		public HashMap<Integer, List<String>> hints;
+		public boolean bot;
 		public boolean ready;
 		public boolean shotOnce;
 		public boolean gameIsOver;
@@ -550,11 +633,12 @@ public class Battle {
 		public double damPercent;
 
 		Player() {
-			name = "PLAYER";
+			name = "";
 			board = new BoardPiece[boardSize][boardSize];
 			ships = new ArrayList<Ship>();
 			hitList = new LinkedHashMap<Integer, String>();
 			hints = new HashMap<Integer, List<String>>();
+			bot = false;
 			ready = false;
 			shotOnce = false;
 			gameIsOver = false;
@@ -628,7 +712,6 @@ public class Battle {
 								clearBoard();
 								AIplaceShips();
 								printBoard();
-								autoPlace = false;
 								if (!said) {
 									System.out.println("\n Nice, ships are placed!\n"
 											+ " If you wish, you can now reposition your ships");
@@ -667,7 +750,6 @@ public class Battle {
 								// Valid placement! Except overlap
 							} else {
 								placeOnBoard(this, layout, ships.get(n), input.substring(2, 4));
-								printBoard();
 							}
 						}
 						if (allPlaced()) {
@@ -716,6 +798,7 @@ public class Battle {
 					}
 				}
 			}
+			autoPlace = false;
 		}
 
 		protected void placeOnBoard(Player p, char layout, Ship current, String location) {
@@ -772,6 +855,10 @@ public class Battle {
 				current.placed = true;
 				current.location = location;
 				current.orientation = layout;
+				// Print the board when successful
+				if (!autoPlace) {
+					printBoard();
+				}
 
 			} else { // Overlap
 				if (!autoPlace) {
@@ -793,125 +880,46 @@ public class Battle {
 				; // All ships are correctly placed on the board
 		}
 
-		private void move() {
+		protected void move() {
 			String input = "";
 			String valid = "";
 			String message = "";
 
-			// Player only game
-			if (gameMode == 1 || gameMode == 3) {
+			our = turns.peekFirst();
+			their = turns.peekLast();
 
-				if (PvPvP) { // 3 Player game, all players left
-					message += "\n ›" + name + "'s turn to target ";
-					turns.pop();
-					if (turn == 1) {
-						if (shotOnce) {
-							message += turns.peekLast().name + "‹";
-						} else {
-							message += turns.peekFirst().name + "‹";
-						}
-					} else {
-						if (shotOnce) {
-							message += turns.peekFirst().name + "‹";
-						} else {
-							message += turns.peekLast().name + "‹";
-						}
-					}
-					turns.addFirst(this);
-
-					System.out.println(message);
-					do {
-						input = "";
-						valid = "";
-						System.out.println(" Enter move: ");
-						input = scan.nextLine();
-						if (input.length() == 1) {
-							char choise = input.charAt(0);
-							switch (choise) {
-								case 'H':
-									System.out.println(" HINT: " + getHint() + " looks good");
-									break;
-								case 'S':
-									shipsLeft();
-									break;
-								default:
-							}
-						} else {
-							valid = checkMove(input);
-						}
-
-						if (valid != "ok") {
-							System.out.println(valid);
-						}
-						// Until valid input
-					} while (valid != "ok");
-
-					processMove(input);
-					printBoard();
-
-					// Players get two shots. If they've shot once it's the next player's turn
+			if (PvPvP) { // 3 Player game, all players left
+				message += "\n ›" + name + "'s turn to target ";
+				turns.pop();
+				if (turn == 1) {
 					if (shotOnce) {
-						turns.pop();
-						turns.addLast(this);
-						// Next person in line
-						turn = turns.peek().number;
-						shotOnce = false;
-						// Else they've now shot once
+						message += turns.peekLast().name + "‹";
 					} else {
-						shotOnce = true;
+						message += turns.peekFirst().name + "‹";
 					}
-
-				} else { // PvP
+				} else {
+					if (shotOnce) {
+						message += turns.peekFirst().name + "‹";
+					} else {
+						message += turns.peekLast().name + "‹";
+					}
+				}
+				turns.addFirst(this);
+			} else { // 2 Players
+				// Print this for player only games
+				if (gameMode != 2) {
 					message = "\n ›" + name + "'s turn";
 					if (gameMode == 3) {
-						message += " to target " + turns.peekLast().name;
+						message += " to target " + their.name;
 					}
-					System.out.println(message);
-					do {
-						input = "";
-						valid = "";
-						System.out.println(" Enter move: ");
-						input = scan.nextLine();
-						if (input.length() == 1) {
-							char choise = input.charAt(0);
-							switch (choise) {
-								case 'H':
-									System.out.println(" HINT: " + getHint() + " looks good");
-									break;
-								case 'S':
-									shipsLeft();
-									break;
-								default:
-							}
-						} else {
-							valid = checkMove(input);
-						}
-
-						if (valid != "ok") {
-							System.out.println(valid);
-						}
-						// Until valid input
-					} while (valid != "ok");
-
-					processMove(input);
-					gameOver = checkWin();
-					printBoard();
-
-					// Pop and put last in line
-					turns.pop();
-					turns.addLast(this);
-					turn = turns.peek().number;
 				}
-				// Player vs Bot
-			} else if (gameMode == 2) {
+			}
+			System.out.println(message);
 
-				do {
-					if (turn == 1) {
-						System.out.println(" Enter move: ");
-						input = scan.nextLine();
-					} else {
-						input = AImove();
-					}
+			do {
+				if (!our.bot) {
+					System.out.println(" Enter move: ");
+					input = scan.nextLine();
 					if (input.length() == 1) {
 						char choise = input.charAt(0);
 						switch (choise) {
@@ -926,32 +934,44 @@ public class Battle {
 					} else {
 						valid = checkMove(input);
 					}
-					// We don't want to se AI errors
-					if (turn == 1 && valid != "ok") {
-						System.out.println(valid);
-					}
-					// Until valid input
-				} while (valid != "ok");
-
-				processMove(input);
-				gameOver = checkWin();
-
-				if (turn != 1) {
-					printBoard();
+				} else {
+					valid = our.checkMove(input);
 				}
+
+				if (valid != "ok") {
+					System.out.println(valid);
+				}
+				// Until valid input
+			} while (valid != "ok");
+
+			processMove(input);
+
+			if (PvPvP) {
+				// Players get two shots. If they've shot once it's the next player's turn
+				if (shotOnce) {
+					turns.pop();
+					turns.addLast(this);
+					// Next person in line
+					turn = turns.peek().number;
+					shotOnce = false;
+					// Else they've now shot once
+				} else {
+					shotOnce = true;
+				}
+			} else {
+				// Check if game is over only when PvP
+				gameOver = checkWin();
+				// Pop and put last in line
 				turns.pop();
 				turns.addLast(this);
 				turn = turns.peek().number;
 			}
 		}
 
-		private String getHint() {
-			Player their = new Player();
+		protected String getHint() {
 
-			if (gameMode == 1 || gameMode == 2) {
-				their = turns.peekLast();
-			} else if (gameMode == 3) {
-				turns.pop();
+			if (PvPvP) {
+				our = turns.pop();
 				if (turn == 1) {
 					if (shotOnce) {
 						their = turns.peekLast();
@@ -966,22 +986,24 @@ public class Battle {
 					}
 				}
 				turns.addFirst(this);
+			} else { // PvP
+				our = turns.peekFirst();
+				their = turns.peekLast();
 			}
-
-			Iterator<Ship> it = their.ships.iterator();
-			boolean overlap;
-			// reset values
+			// reset probabilities
 			for (int row = 0; row < boardSize; row++) {
 				for (int col = 0; col < boardSize; col++) {
 					their.board[row][col].prob = 0;
 				}
 			}
+
+			boolean overlap;
+			Iterator<Ship> it = their.ships.iterator();
 			// Evaluate whole board for all ships left
 			while (it.hasNext()) {
 				Ship current = it.next();
 				if (!current.destroyed) {
-					
-//					System.out.println("\n"+current.name);
+					// System.out.println("\n" + current.name);
 					for (int row = 0; row < boardSize; row++) {
 						for (int col = 0; col < boardSize; col++) {
 							overlap = false;
@@ -989,9 +1011,10 @@ public class Battle {
 							if ((col + current.size) > boardSize) {
 								overlap = true;
 							} else {
-								// Checks overlap
+								// Checks overlap, ignore ships on hit List
 								for (int x = col; x < (current.size + col); x++) {
-									if (their.board[row][x].selected) {
+									if (their.board[row][x].selected &&
+											!our.hitList.containsKey(their.board[row][x].type)) {
 										overlap = true;
 									}
 								}
@@ -1002,6 +1025,7 @@ public class Battle {
 									their.board[row][x].prob++;
 								}
 							}
+							// Reset
 							overlap = false;
 							// Vertical placement
 							if ((row + current.size) > boardSize) {
@@ -1009,7 +1033,8 @@ public class Battle {
 							} else {
 								// Checks overlap
 								for (int y = row; y < (current.size + row); y++) {
-									if (their.board[y][col].selected) {
+									if (their.board[y][col].selected &&
+											!our.hitList.containsKey(their.board[y][col].type)) {
 										overlap = true;
 									}
 								}
@@ -1020,19 +1045,22 @@ public class Battle {
 									their.board[y][col].prob++;
 								}
 							}
-//							System.out.printf("%5s",their.board[row][col].prob);
 						}
-//						System.out.println();
 					}
 				}
 			}
+
 			int i = 0;
 			String max = "";
 			hints.clear();
 			String hint = "";
 			List<String> coords = new ArrayList<String>();
+			// Collect the highest valued squares
 			for (int row = 0; row < boardSize; row++) {
 				for (int col = 0; col < boardSize; col++) {
+					if (their.board[row][col].selected) {
+						their.board[row][col].prob = 0;
+					}
 					if (their.board[row][col].prob > i) {
 						coords.clear();
 						i = their.board[row][col].prob;
@@ -1044,132 +1072,17 @@ public class Battle {
 						max = String.valueOf((char) (row + 65)) + String.valueOf((char) (col + 48));
 						coords.add(max);
 					}
+//					System.out.printf("%5s", their.board[row][col].prob);
 				}
+//				System.out.println();
 			}
+
 			int index = random.nextInt(coords.size());
 			hint = coords.get(index);
 			return hint;
 		}
 
-		private String AImove() {
-			int nextRow = 0;
-			int nextCol = 0;
-			String nextMove = "";
-			// IQ 1 = fire randomly
-			if (AI.IQ == 1) {
-				int row = 0;
-				int col = 0;
-				row = random.nextInt(boardSize) + 65; // [0,boardSize)
-				col = random.nextInt(boardSize) + 48;
-				// row += 65; // 0=A ... 9=J
-				// col += 48; // 0=0 ... 1=1
-				String move = String.valueOf((char) row) + String.valueOf((char) col);
-				return move;
-			} else if (AI.IQ == 2) { // IQ 2
-
-				if (p2.hitList.isEmpty()) { // go random
-					nextRow = random.nextInt(boardSize); // [0,boardSize)
-					nextCol = random.nextInt(boardSize);
-					nextRow += 65; // 0=A ... 9=J
-					nextCol += 48; // 0=0 ... 1=1
-					nextMove = String.valueOf((char) nextRow) + String.valueOf((char) nextCol);
-					// Hitlist isn't empty
-				} else {
-					String first = p2.hitList.get(AI.targetType);
-					// First hit position of active ship
-					int firstRow = first.charAt(0);
-					int firstCol = first.charAt(1);
-					// Latest move
-					String last = AI.lastMove;
-					int lastRow = last.charAt(0);
-					int lastCol = last.charAt(1);
-					Ship hitShip = new Ship();
-
-					// Find the active ship
-					for (Ship ship : p1.ships) {
-						if (ship.type == AI.targetType) {
-							hitShip = ship;
-						}
-						// Got it
-					}
-					// IF AI hit their previous shot
-					if (AI.justHit) {
-						// Keep going from where they hit
-						nextRow = lastRow;
-						nextCol = lastCol;
-						// else go to where they first did
-					} else {
-						nextRow = firstRow;
-						nextCol = firstCol;
-						// If targetted ship was only hit once
-						if (hitShip.hitCount == 1) {
-							// Keep resetting if we missed a target ship more than twice in a row
-							if (AI.reset) {
-								nextDirection = random.nextInt(4);
-								// We hit a wall or a used square, turn around
-							} else {
-								nextDirection = AI.change(AI.direction);
-							}
-							// It's been hit multiple times, turn around.
-						} else {
-							nextDirection = AI.change(AI.direction);
-						}
-					}
-					nextMove = AI.traverse(nextRow, nextCol, nextDirection);
-				}
-				return nextMove;
-			} else { // IQ == 3
-				if (p2.hitList.isEmpty()) { 
-					// Calculate Best location
-					return getHint();
-				} else {
-					String first = p2.hitList.get(AI.targetType);
-					// First hit position of active ship
-					int firstRow = first.charAt(0);
-					int firstCol = first.charAt(1);
-					// Latest move
-					String last = AI.lastMove;
-					int lastRow = last.charAt(0);
-					int lastCol = last.charAt(1);
-					Ship hitShip = new Ship();
-
-					// Find the active ship
-					for (Ship ship : p1.ships) {
-						if (ship.type == AI.targetType) {
-							hitShip = ship;
-						}
-						// Got it
-					}
-					// IF AI hit their previous shot
-					if (AI.justHit) {
-						// Keep going from where they hit
-						nextRow = lastRow;
-						nextCol = lastCol;
-						// else go to where they first did
-					} else {
-						nextRow = firstRow;
-						nextCol = firstCol;
-						// If targetted ship was only hit once
-						if (hitShip.hitCount == 1) {
-							// Keep resetting if we missed a target ship more than twice in a row
-							if (AI.reset) {
-								nextDirection = random.nextInt(4);
-								// We hit a wall or a used square, turn around
-							} else {
-								nextDirection = AI.change(AI.direction);
-							}
-							// It's been hit multiple times, turn around.
-						} else {
-							nextDirection = AI.change(AI.direction);
-						}
-					}
-					nextMove = AI.traverse(nextRow, nextCol, nextDirection);
-				}
-				return nextMove;
-			}
-		}
-
-		private String checkMove(String move) {
+		protected String checkMove(String move) {
 			// Won't process until ok
 			if (move.length() != 2) {
 				return " Invalid input.";
@@ -1177,283 +1090,131 @@ public class Battle {
 			int row = (move.charAt(0)) - 65;
 			int col = (move.charAt(1)) - 48;
 
-			// Player vs Player
-			if (gameMode == 1 || gameMode == 3) {
-				Player our = new Player();
-				Player their = new Player();
-
-				our = turns.pop();
-				if (turn == 1) { // To avoid multiple hits
-					if (our.shotOnce) {
-						their = turns.peekLast();
-					} else {
-						their = turns.peekFirst();
-					}
-				} else { // P1 or P3
-					if (our.shotOnce) {
-						their = turns.peekFirst();
-					} else {
-						their = turns.peekLast();
-					}
-				}
-				turns.addFirst(our);
-
-				if (row >= boardSize || row < 0) {
-					return " Invalid row.";
-				}
-				if (col >= boardSize || col < 0) {
-					return " Invalid column.";
-				}
-				if (their.board[row][col].selected) {
-					return " Already chosen.";
-				}
-				// Player vs Bot
-			} else if (gameMode == 2) {
-
-				if (turn == 1) {
-					if (row >= boardSize || row < 0) {
-						return " Invalid row. ";
-					}
-					if (col >= boardSize || col < 0) {
-						return " Invalid column.";
-					}
-					if (p2.board[row][col].selected) {
-						return " Already chosen.";
-					}
-					// AI makes a mistake
+			our = turns.pop();
+			if (turn == 1) {
+				if (our.shotOnce) {
+					their = turns.peekLast();
 				} else {
-					// AI is out of bounds
-					if (row >= boardSize || row < 0 || col >= boardSize ||
-							col < 0) {
-						// If AI just hit, turn around before next move
-						if (AI.justHit) {
-							AI.turnAround = true;
-						}
-						AI.reset = true;
-						AI.justHit = false;
-						// As if we didnt hit
-						return "Bad AI, bad";
-					}
-					// If the active ship is on the hitlist we know that AI wasn't
-					// done and needs to reset
-					// might end up here if we hit a missed square during twirl
-					// but AI.justHit = false fixes that
-					if (p1.board[row][col].selected && p2.hitList.containsKey(AI.targetType)) {
-						// We're gonna send error message anyways
-						// but next time AI moves we will have reset
-						// and changed direction
-						AI.justHit = false;
-						AI.reset = true;
-						return "AI no!";
-					} else if (p1.board[row][col].selected) {
-						return "AI stop.";
-					}
+					their = turns.peekFirst();
 				}
+			} else { // P1 or P3
+				if (our.shotOnce) {
+					their = turns.peekFirst();
+				} else {
+					their = turns.peekLast();
+				}
+			}
+			turns.addFirst(our);
+
+			if (row >= boardSize || row < 0) {
+				return " Invalid row.";
+			}
+			if (col >= boardSize || col < 0) {
+				return " Invalid column.";
+			}
+			if (their.board[row][col].selected) {
+				return " Already chosen.";
 			}
 			return "ok";
 		}
 
-		private void processMove(String move) {
+		protected void processMove(String move) {
 			int row = move.charAt(0) - 65;
 			int col = move.charAt(1) - 48;
 			char marker = ' ';
 			String message = "";
-			Player our = new Player();
-			Player their = new Player();
 			Ship hitShip = new Ship();
 			int shipType = 0;
 
-			// Players only Game
-			if (gameMode == 1 || gameMode == 3) {
-
-				if (gameMode == 1) {
-					our = turns.peekFirst();
-					their = turns.peekLast();
-					shipType = their.board[row][col].type;
-				} else if (gameMode == 3) {
-
-					our = turns.pop();
-					if (turn == 1) { // To avoid multiple hits
-						if (our.shotOnce) {
-							their = turns.peekLast();
-							shipType = their.board[row][col].type;
-						} else {
-							their = turns.peekFirst();
-							shipType = their.board[row][col].type;
-						}
-					} else { // P1 or P3
-						if (our.shotOnce) {
-							their = turns.peekFirst();
-							shipType = their.board[row][col].type;
-						} else {
-							their = turns.peekLast();
-							shipType = their.board[row][col].type;
-						}
+			if (PvPvP) {
+				// This is to balance who gets hit
+				our = turns.pop();
+				if (turn == 1) {
+					if (our.shotOnce) {
+						their = turns.peekLast(); // p1>p3
+					} else {
+						their = turns.peekFirst(); // p1>p2
 					}
-					turns.addFirst(our);
+				} else { // P2 or P3
+					if (our.shotOnce) { // p2>p1 or p3>p2
+						their = turns.peekFirst();
+					} else {
+						their = turns.peekLast(); // p2>p3 or p3>p1
+					}
 				}
-
-				if (their.board[row][col].used) {
-					marker = 'X';
-					message = "Hit!";
-					our.hits++;
-					// Find the hit ship
-					for (Ship ship : their.ships) {
-						if (ship.type == shipType) {
-							hitShip = ship;
-						}
-					}
-					hitShip.hitCount++;
-
-					if (hitShip.hitCount == hitShip.size) {
-						hitShip.destroyed = true;
-						their.destroyedShips++;
-						our.sunkCount++;
-						message += "\n " + our.name + " destroyed " + their.name + "'s " + hitShip.name + "!";
-
-						// Displays Ships left, not if all are sunk
-						if (their.destroyedShips != numOfShips) {
-							message += "\n\t_______Ships left_______\n";
-							for (Ship left : their.ships) {
-								if (!left.destroyed) {
-									message += "\t " + left.name + "\t- " + left.size + " spots\n";
-								}
-							}
-						} else {
-							their.gameIsOver = true;
-							shotOnce = true;
-							PvPvP = false;
-							// PvPvP to PvP
-							if (gameMode == 3 && turns.size() == 3) {
-								turns.remove(their);
-								message += "\n " + their.name + " has no ships left!";
-							}
-						}
-					}
-					their.board[row][col].hidden = false;
-				} else {
-					marker = 'o';
-					message = "Miss!";
-					our.misses++;
-				}
-				their.board[row][col].piece = Character.toString(marker);
-				their.board[row][col].selected = true;
-
-				message = " ›" + name + "'s move:\t" + move + " - " + message;
-				System.out.println(message);
-			}
-
-			// Player vs Bot
-			else if (gameMode == 2) {
+				turns.addFirst(our);
+			} else { // PvP
 				our = turns.peekFirst();
 				their = turns.peekLast();
-				shipType = their.board[row][col].type;
+			}
+			shipType = their.board[row][col].type;
 
-				// Last move to pass on
-				String lastMove = move;
-				// if (turn == 1) {
-				if (their.board[row][col].used) {
-					marker = 'X';
-					message = "Hit!";
-					our.hits++;
-					// //
-					if (turn == 2) {
-						AI.justHit = true;
-						AI.reset = false;
-						// If we hit a new ship, add it
-						if (!our.hitList.containsKey(shipType)) {
-							if (our.hitList.isEmpty()) {
-								our.hitList.put(shipType, move);
-								// Start targeting the first ship
-								AI.targetType = shipType;
-							} else { // We hit a new ship
-								our.hitList.put(shipType, move);
-							}
-						} else
-							; // We hit an already hit ship
-						// Remember what direction we went
-						AI.direction = nextDirection;
+			// We hit
+			if (their.board[row][col].used) {
+				marker = 'X';
+				message = "Hit!";
+				our.hits++;
+				// For when we reveal the board
+				their.board[row][col].hidden = false;
+
+				// If it's a new ship, add to HitList (hints)
+				if (!our.hitList.containsKey(shipType)) {
+					our.hitList.put(shipType, move);
+				}
+				// Find the hit ship
+				for (Ship ship : their.ships) {
+					if (ship.type == shipType) {
+						hitShip = ship;
 					}
-					// //////
+				}
+				hitShip.hitCount++;
 
-					// Find the hit ship
-					for (Ship ship : their.ships) {
-						if (ship.type == shipType) {
-							hitShip = ship;
+				if (hitShip.hitCount == hitShip.size) { // Destroyed
+					hitShip.destroyed = true;
+					their.destroyedShips++;
+					our.sunkCount++;
+					// Remove it from our hitList
+					our.hitList.remove(shipType);
+					if (gameMode == 2) {
+						message += "\n You ";
+					} else {
+						message += "\n " + our.name;
+					}
+					message += " destroyed " + their.name + "'s " + hitShip.name + "!";
+					// Displays Ships left, not if all are sunk
+					if (their.destroyedShips != numOfShips) {
+						message += "\n\t_______Ships_left_______\n";
+						for (Ship left : their.ships) {
+							if (!left.destroyed) {
+								message += "\t " + left.name + "\t- " + left.size + " spots\n";
+							}
 						}
-					}
-					// Check if enemy ship is sunk
-					hitShip.hitCount++;
-					if (hitShip.hitCount == hitShip.size) {
-						hitShip.destroyed = true;
-						their.destroyedShips++;
-						our.sunkCount++;
-						if (turn == 1) {
-							message += "\n You destroyed their " + hitShip.name + "!";
-
-							// Displays Ships left, don't do if all are sunk
-							if (their.destroyedShips != numOfShips) {
-								message += "\n\t_______Ships left_______\n";
-								for (Ship left : their.ships) {
-									if (!left.destroyed) {
-										message += "\t " + left.name + "\t- " + left.size + " spots\n";
-									}
-								}
-							}
-						} else {
-							message += "\n They destroyed your " + hitShip.name + "!";
-							// Remove fron HitList
-							AI.hitList.remove(shipType);
-							// If more targets, target next
-							if (!AI.hitList.isEmpty()) {
-								Iterator<Integer> it = AI.hitList.keySet().iterator();
-								AI.targetType = it.next();
-								// Our "last" move is where we first hit the next target
-								// this will be the Bot's next starting point
-								lastMove = hitList.get(AI.targetType);
-								// The ship will only have been hit once, so twirl
-								AI.direction = random.nextInt(4);
-								AI.justHit = false;
-								AI.reset = true;
-							}
-						} // Checks if game is over
-						if (their.destroyedShips == numOfShips) {
+					} else { // All ships are sunk
+						if (PvPvP) {
+							// Remove first loser from turns list
+							turns.remove(their);
+							message += "\n " + their.name + " has no ships left!";
+							// PvPvP to PvP
+							PvPvP = false;
+						} else { // PvP
 							their.gameIsOver = true;
 						}
 					}
-				} else {
-					marker = 'o';
-					message = "Miss!";
-					our.misses++;
-					if (turn == 2) {
-						if (!AI.justHit) {
-							AI.reset = true;
-						}
-						AI.justHit = false;
-					}
 				}
-				their.board[row][col].piece = Character.toString(marker);
-				their.board[row][col].selected = true;
-				their.board[row][col].hidden = false;
-
-				if (turn == 2) {
-					AI.lastMove = lastMove;
-					// Reset turnAround trigger
-					AI.turnAround = false;
-					message = " ›Enemy's move:\t" + move + " - " + message;
-				} else {
-					message = " ›Your move:\t" + move + " - " + message;
-				}
-				System.out.println(message);
+			} else { // We missed
+				marker = 'o';
+				message = "Miss!";
+				our.misses++;
 			}
+			their.board[row][col].piece = Character.toString(marker);
+			their.board[row][col].selected = true;
+
+			message = String.format("%-20s%s", " ›" + our.name + "'s move:", move + " - " + message);
+			System.out.println(message);
+
 		}
 
-		public boolean checkWin() {
-			Player our = new Player();
-			Player their = new Player();
-
-			our = turns.peekFirst();
-			their = turns.peekLast();
+		protected boolean checkWin() {
 
 			if (their.gameIsOver) {
 				p1.revealShips();
@@ -1464,11 +1225,11 @@ public class Battle {
 							"\n Congratulations " + our.name + "! You've destroyed all of " + their.name
 									+ "'s ships!");
 				} else if (gameMode == 2) {
-					if (turn == 1) {
+					if (our.bot = false) {
 						printBoard();
 						System.out.println(
 								"\n Congratulations " + our.name + "! You've destroyed all enemy ships!");
-					} else {
+					} else { // The AI won
 						System.out.println("\n Defeat! You've lost your fleet!");
 					}
 				} else { // gameMode == 3
@@ -1591,7 +1352,7 @@ public class Battle {
 		}
 	}
 
-	class Bot extends Player {
+	public class Bot extends Player {
 		public int IQ;
 		public boolean justHit;
 		public boolean reset;
@@ -1599,9 +1360,23 @@ public class Battle {
 		public String lastMove;
 		public int targetType;
 		public int direction;
+		public int nextDirection;
 
 		Bot(int level) {
-			name = "Anna";
+			switch (level) {
+				case 1:
+					name = "Hodor";
+					break;
+				case 2:
+					name = "Wall-E";
+					break;
+				case 3:
+					name = "C-3PO";
+					break;
+				case 4:
+					name = "Mozart";
+					break;
+			}
 			IQ = level;
 			justHit = false;
 			reset = false;
@@ -1609,9 +1384,307 @@ public class Battle {
 			lastMove = "";
 			targetType = 0;
 			direction = 0;
+			nextDirection = 0;
 		}
 
-		public String traverse(int row, int col, int direction) {
+		protected String calcMove() {
+			int nextRow = 0;
+			int nextCol = 0;
+			String nextMove = "";
+			// IQ 1 = fire randomly
+			if (IQ == 1) {
+				int row = 0;
+				int col = 0;
+				row = random.nextInt(boardSize) + 65; // [0,boardSize)
+				col = random.nextInt(boardSize) + 48;
+				// row += 65; // 0=A ... 9=J
+				// col += 48; // 0=0 ... 1=1
+				String move = String.valueOf((char) row) + String.valueOf((char) col);
+				return move;
+			} else if (IQ == 2) {
+
+				return getHint();
+
+			} else if (IQ == 3) { // IQ 3
+
+				if (hitList.isEmpty()) { // go random
+					nextRow = random.nextInt(boardSize); // [0,boardSize)
+					nextCol = random.nextInt(boardSize);
+					nextRow += 65; // 0=A ... 9=J
+					nextCol += 48; // 0=0 ... 1=1
+					nextMove = String.valueOf((char) nextRow) + String.valueOf((char) nextCol);
+					// Hitlist isn't empty
+				} else {
+					String first = hitList.get(targetType);
+					// First hit position of active ship
+					int firstRow = first.charAt(0);
+					int firstCol = first.charAt(1);
+					// Latest move
+					String last = lastMove;
+					int lastRow = last.charAt(0);
+					int lastCol = last.charAt(1);
+					Ship hitShip = new Ship();
+
+					// Find the active ship
+					for (Ship ship : their.ships) {
+						if (ship.type == targetType) {
+							hitShip = ship;
+						}
+						// Got it
+					}
+					// IF AI hit their previous shot
+					if (justHit) {
+						// Keep going from where they hit
+						nextRow = lastRow;
+						nextCol = lastCol;
+						// else go to where they first did
+					} else {
+						nextRow = firstRow;
+						nextCol = firstCol;
+						// If targetted ship was only hit once
+						if (hitShip.hitCount == 1) {
+							// Keep resetting if we missed a target ship more than twice in a row
+							if (reset) {
+								nextDirection = random.nextInt(4);
+								// We hit a wall or a used square, turn around
+							} else {
+								nextDirection = change(direction);
+							}
+							// It's been hit multiple times, turn around.
+						} else {
+							nextDirection = change(direction);
+						}
+					}
+					nextMove = trace(nextRow, nextCol, nextDirection);
+				}
+				return nextMove;
+			} else if (IQ == 4) {
+				if (hitList.isEmpty()) {
+					// Calculate Best location
+					return getHint();
+				} else {
+					String first = hitList.get(targetType);
+					// First hit position of active ship
+					int firstRow = first.charAt(0);
+					int firstCol = first.charAt(1);
+					// Latest move
+					String last = lastMove;
+					int lastRow = last.charAt(0);
+					int lastCol = last.charAt(1);
+					Ship hitShip = new Ship();
+
+					// Find the active ship
+					for (Ship ship : their.ships) {
+						if (ship.type == targetType) {
+							hitShip = ship;
+						}
+						// Got it
+					}
+					// IF AI hit their previous shot
+					if (justHit) {
+						// Keep going from where they hit
+						nextRow = lastRow;
+						nextCol = lastCol;
+						// else go to where they first did
+					} else {
+						nextRow = firstRow;
+						nextCol = firstCol;
+						// If targetted ship was only hit once
+						if (hitShip.hitCount == 1) {
+							// Keep resetting if we missed a target ship more than twice in a row
+							if (reset) {
+								nextDirection = random.nextInt(4);
+								// We hit a wall or a used square, turn around
+							} else {
+								nextDirection = change(direction);
+							}
+							// It's been hit multiple times, turn around.
+						} else {
+							nextDirection = change(direction);
+						}
+					}
+					nextMove = trace(nextRow, nextCol, nextDirection);
+				}
+			}
+			return nextMove;
+		}
+
+		@Override
+		protected String checkMove(String move) {
+			int row = (move.charAt(0)) - 65;
+			int col = (move.charAt(1)) - 48;
+
+			our = turns.pop();
+			if (turn == 1) {
+				if (our.shotOnce) {
+					their = turns.peekLast();
+				} else {
+					their = turns.peekFirst();
+				}
+			} else { // P1 or P3
+				if (our.shotOnce) {
+					their = turns.peekFirst();
+				} else {
+					their = turns.peekLast();
+				}
+			}
+			turns.addFirst(our);
+
+			// AI is out of bounds
+			if (row >= boardSize || row < 0 || col >= boardSize ||
+					col < 0) {
+				// If AI just hit, turn around before next move
+				if (justHit) {
+					turnAround = true;
+				}
+				reset = true;
+				justHit = false;
+				// As if we didnt hit
+				return "Bad AI, bad";
+			}
+			// If the active ship is on the hitlist we know that AI wasn't
+			// done and needs to reset
+			// might end up here if we hit a missed square during twirl
+			// but justHit = false fixes that
+			if (their.board[row][col].selected && our.hitList.containsKey(targetType)) {
+				// We're gonna send error message anyways
+				// but next time AI moves we will have reset
+				// and changed direction
+				justHit = false;
+				reset = true;
+				return "AI no!";
+			} else if (their.board[row][col].selected) {
+				return "AI stop.";
+			}
+			return "ok";
+		}
+
+		@Override
+		protected void processMove(String move) {
+			int row = move.charAt(0) - 65;
+			int col = move.charAt(1) - 48;
+			char marker = ' ';
+			String message = "";
+			Ship hitShip = new Ship();
+			int shipType = 0;
+
+			if (PvPvP) {
+				// This is to balance who gets hit
+				our = turns.pop();
+				if (turn == 1) {
+					if (our.shotOnce) {
+						their = turns.peekLast(); // p1>p3
+					} else {
+						their = turns.peekFirst(); // p1>p2
+					}
+				} else { // P2 or P3
+					if (our.shotOnce) { // p2>p1 or p3>p2
+						their = turns.peekFirst();
+					} else {
+						their = turns.peekLast(); // p2>p3 or p3>p1
+					}
+				}
+				turns.addFirst(our);
+			} else { // PvP
+				our = turns.peekFirst();
+				their = turns.peekLast();
+			}
+			shipType = their.board[row][col].type;
+
+			// Last move to pass on
+			String last = move;
+			if (their.board[row][col].used) {
+				marker = 'X';
+				message = "Hit!";
+				hits++;
+				justHit = true;
+				reset = false;
+
+				// Add the ship to our hitList
+				// If we hit a new ship, add it
+				if (!our.hitList.containsKey(shipType)) {
+					if (our.hitList.isEmpty()) {
+						our.hitList.put(shipType, move);
+						// Start targeting the first ship
+						targetType = shipType;
+					} else { // We hit a new ship
+						our.hitList.put(shipType, move);
+					}
+				} else
+					; // We hit an already hit ship
+
+				// Remember what direction we went
+				direction = nextDirection;
+
+				// Find the hit ship
+				for (Ship ship : their.ships) {
+					if (ship.type == shipType) {
+						hitShip = ship;
+					}
+				}
+				// Check if enemy ship is sunk
+				hitShip.hitCount++;
+				if (hitShip.hitCount == hitShip.size) {
+					hitShip.destroyed = true;
+					their.destroyedShips++;
+					our.sunkCount++;
+					// Remove ship from hitList
+					our.hitList.remove(shipType);
+
+					// If more targets, target next
+					if (!our.hitList.isEmpty()) {
+
+						Iterator<Integer> it = our.hitList.keySet().iterator();
+						// This is to ensure we sunk the correct ship
+						if (targetType == shipType) {
+							targetType = it.next();
+							System.out.println("Now I target " + targetType);
+						} else {// we rarely sink another ship
+							System.out.println("next on list is " + targetType);
+							;
+						}
+						// Our "last" move is where we first hit the next target
+						// this will be the Bot's next starting point
+						last = hitList.get(targetType);
+						System.out.println("last: " + last);
+						// The ship will only have been hit once, so twirl
+						justHit = false;
+						reset = true;
+						// direction = random.nextInt(4);
+					}
+					// Checks if game is over
+					if (their.destroyedShips == numOfShips) {
+						their.gameIsOver = true;
+					}
+					message += "\n\n " + our.name + " destroyed ";
+					if (gameMode == 2) {
+						message += "your " + hitShip.name + "!";
+					} else {
+						message += their.name + "'s " + hitShip.name + "!";
+					}
+				}
+			} else {
+				marker = 'o';
+				message = "Miss!";
+				our.misses++;
+				if (!justHit) {
+					reset = true;
+				}
+				justHit = false;
+			}
+			their.board[row][col].piece = Character.toString(marker);
+			their.board[row][col].selected = true;
+			their.board[row][col].hidden = false;
+
+			lastMove = last;
+			// Reset turnAround trigger
+			turnAround = false;
+			// Don't print this if AI vs AI
+			message = String.format("%-20s%s", " ›" + our.name + "'s move:", move + " - " + message);
+			System.out.println(message);
+		}
+
+		private String trace(int row, int col, int direction) {
 			String nextMove;
 			switch (direction) {
 				case 0:
