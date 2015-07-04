@@ -25,8 +25,8 @@ public class Battle {
 		boolean valid = false;
 
 		System.out.println(
-				"\n\t WELCOME TO BATTLESHIPS!\n\n" +
-						" ›Enter the corresponding number to make a selection‹\n");
+				"\n\t WELCOME TO BATTLESHIPS!\n\n"
+						+ " Enter the corresponding number to make a selection\n");
 		do {
 			game.play();
 			firstGame = false;
@@ -68,9 +68,11 @@ public class Battle {
 				p1.hideShips();
 				p2.placeShips();
 				p2.hideShips();
-				System.out.println("\n Both players are ready!\n" +
-						" Let the battle begin!"
-						+ "\n\n Enter your moves in the form 'D2'");
+				System.out.println("\n Both players are ready, let the battle begin!"
+						+ "\n\n Enter your moves in the form 'D2'"
+						+ "\n\n At any time during the game,"
+						+ "\n Type 'S' to see all remaining ships"
+						+ "\n Type 'H' to get a hint");
 				break;
 			case 2:
 				printBoard();
@@ -80,7 +82,10 @@ public class Battle {
 				p2.hideShips();
 				System.out.println("\n Your enemy has placed out their ships!"
 						+ "\n Let the battle begin!"
-						+ "\n\n Enter your moves in the form 'D2'");
+						+ "\n\n Enter your moves in the form 'D2'"
+						+ "\n\n At any time during the game,"
+						+ "\n Type 'S' to see all remaining ships"
+						+ "\n Type 'H' to get a hint");
 				break;
 			case 3:
 				printBoard();
@@ -103,18 +108,20 @@ public class Battle {
 				}
 				p3.hideShips();
 				System.out.println("\n All players are ready,"
-						+ " let the battle begin!\n\n"
-						+ " You get 2 shots per round, 1 per opponent\n"
-						+ " At any time during the game, type 'S' to see all remaining ships\n"
-						+ " Enter your moves in the form 'B3'");
+						+ " let the battle begin!"
+						+ "\n You get 2 shots per round, 1 per opponent"
+						+ "\n\n Enter your moves in the form 'D2'"
+						+ "\n\n At any time during the game,"
+						+ "\n Type 'S' to see all remaining ships"
+						+ "\n Type 'H' to get a hint");
 				break;
 			case 4:
 				printBoard();
 				autoPlace = true;
 				p1.AIplaceShips();
+				autoPlace = true;
 				p2.AIplaceShips();
 				printBoard();
-				System.out.println(" A good old Bot Battle");
 				break;
 		}
 		while (!gameOver) {
@@ -161,9 +168,8 @@ public class Battle {
 		System.out.println(
 				"\t_______Game_Mode______\n" +
 						"\t 1: Player vs Player \n" +
-						"\t 2: Player vs Computer\n" +
+						"\t 2: Player vs Bot\n" +
 						"\t 3: 3 Player Game\n" +
-						"\t 4: Computer vs Computer\n" +
 						"\t______________________");
 		p1 = new Player();
 		p2 = new Player();
@@ -193,12 +199,12 @@ public class Battle {
 					case '3': // 3 Player Game
 						gameMode = 3;
 						PvPvP = true;
-						System.out.println(
-								"\t_______Game_Mode______\n" +
-										"\t 1: Players Only\n" +
-										"\t 2: One Computer\n" +
-										"\t 3: Two Computers\n" +
-										"\t______________________");
+						System.out.println(" In this mode, everyone fights everyone\n\n"
+								+ "\t_______Game_Mode______\n"
+								+ "\t 1: 3 Players\n"
+								+ "\t 2: 2 Players, 1 Bot\n"
+								+ "\t 3: 1 Player, 2 Bots\n"
+								+ "\t______________________");
 						boolean chosen3 = false;
 						while (!chosen3) {
 							char mode3 = scan.nextLine().charAt(0);
@@ -241,7 +247,7 @@ public class Battle {
 						chosenMode = true;
 						break;
 					default:
-						System.out.println(" Enter 1, 2, 3 or 4");
+						System.out.println(" Enter 1, 2, or 3");
 				}
 			} catch (StringIndexOutOfBoundsException e) {
 				System.out.println(" Enter something");
@@ -446,6 +452,7 @@ public class Battle {
 		String boardwidth = "";
 		String topRow = "";
 		String colEnum = " ";
+
 		// Determines boardWidth
 		for (int i = 0; i < boardSize - 1; i++) {
 			boardwidth += space + " ";
@@ -457,7 +464,7 @@ public class Battle {
 				// Top row
 				topRow += " ›" + p1.name + "‹" + boardwidth + "\t ›" + p2.name + "‹";
 				// Add if 3 players
-				if (gameMode == 3) {
+				if (PvPvP) {
 					topRow += boardwidth + "\t ›" + p3.name + "‹";
 				}
 				System.out.println("\n" + topRow);
@@ -705,7 +712,6 @@ public class Battle {
 								break;
 							case 'I': // For instructions
 								instructions();
-								printBoard();
 								break;
 							case 'R':
 								autoPlace = true;
@@ -917,25 +923,21 @@ public class Battle {
 			System.out.println(message);
 
 			do {
-				if (!our.bot) {
-					System.out.println(" Enter move: ");
-					input = scan.nextLine();
-					if (input.length() == 1) {
-						char choise = input.charAt(0);
-						switch (choise) {
-							case 'H':
-								System.out.println(" HINT: " + getHint() + " looks good");
-								break;
-							case 'S':
-								shipsLeft();
-								break;
-							default:
-						}
-					} else {
-						valid = checkMove(input);
+				System.out.println(" Enter move: ");
+				input = scan.nextLine();
+				if (input.length() == 1) {
+					char choise = input.charAt(0);
+					switch (choise) {
+						case 'H':
+							System.out.println(" HINT: " + getHint() + " looks good");
+							break;
+						case 'S':
+							shipsLeft();
+							break;
+						default:
 					}
 				} else {
-					valid = our.checkMove(input);
+					valid = checkMove(input);
 				}
 
 				if (valid != "ok") {
@@ -1072,9 +1074,9 @@ public class Battle {
 						max = String.valueOf((char) (row + 65)) + String.valueOf((char) (col + 48));
 						coords.add(max);
 					}
-//					System.out.printf("%5s", their.board[row][col].prob);
+					// System.out.printf("%5s", their.board[row][col].prob);
 				}
-//				System.out.println();
+				// System.out.println();
 			}
 
 			int index = random.nextInt(coords.size());
@@ -1354,13 +1356,13 @@ public class Battle {
 
 	public class Bot extends Player {
 		public int IQ;
-		public boolean justHit;
-		public boolean reset;
-		public boolean turnAround;
-		public String lastMove;
 		public int targetType;
 		public int direction;
 		public int nextDirection;
+		public String lastMove;
+		public boolean justHit;
+		public boolean reset;
+		public boolean turnAround;
 
 		Bot(int level) {
 			switch (level) {
@@ -1378,13 +1380,79 @@ public class Battle {
 					break;
 			}
 			IQ = level;
-			justHit = false;
-			reset = false;
-			turnAround = false;
-			lastMove = "";
 			targetType = 0;
 			direction = 0;
 			nextDirection = 0;
+			lastMove = "";
+			justHit = false;
+			reset = false;
+			turnAround = false;
+		}
+
+		@Override
+		protected void move() {
+			String input = "";
+			String valid = "";
+			String message = "";
+
+			our = turns.peekFirst();
+			their = turns.peekLast();
+
+			if (PvPvP) { // 3 Player game, all players left
+				message += "\n ›" + name + "'s turn to target ";
+				turns.pop();
+				if (turn == 1) {
+					if (shotOnce) {
+						message += turns.peekLast().name + "‹";
+					} else {
+						message += turns.peekFirst().name + "‹";
+					}
+				} else {
+					if (shotOnce) {
+						message += turns.peekFirst().name + "‹";
+					} else {
+						message += turns.peekLast().name + "‹";
+					}
+				}
+				turns.addFirst(this);
+			} else { // 2 Players
+				// Print this for player only games
+				if (gameMode != 2) {
+					message = "\n ›" + name + "'s turn";
+					if (gameMode == 3) {
+						message += " to target " + their.name;
+					}
+				}
+			}
+			System.out.println(message);
+
+			do {
+				input = calcMove();
+				valid = checkMove(input);
+			} while (valid != "ok");
+
+			processMove(input);
+
+			if (PvPvP) {
+				// Players get two shots. If they've shot once it's the next player's turn
+				if (shotOnce) {
+					turns.pop();
+					turns.addLast(this);
+					// Next person in line
+					turn = turns.peek().number;
+					shotOnce = false;
+					// Else they've now shot once
+				} else {
+					shotOnce = true;
+				}
+			} else {
+				// Check if game is over only when PvP
+				gameOver = checkWin();
+				// Pop and put last in line
+				turns.pop();
+				turns.addLast(this);
+				turn = turns.peek().number;
+			}
 		}
 
 		protected String calcMove() {
@@ -1511,6 +1579,9 @@ public class Battle {
 
 		@Override
 		protected String checkMove(String move) {
+			if (move.length() != 2) {
+				return " Invalid input.";
+			}
 			int row = (move.charAt(0)) - 65;
 			int col = (move.charAt(1)) - 48;
 
