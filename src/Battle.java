@@ -22,12 +22,12 @@ public class Battle {
 		firstGame = true;
 		String input = "";
 		boolean again = true;
-		boolean valid = false;
 
 		System.out.println(
 				"\n\t WELCOME TO BATTLESHIPS!\n\n"
 						+ " Enter the corresponding number to make a selection\n");
 		do {
+			boolean valid = false;
 			game.play();
 			firstGame = false;
 			System.out.println("\n Do you want to play again? (Y/N):");
@@ -1255,14 +1255,14 @@ public class Battle {
 							"\n Congratulations " + our.name + "! You've destroyed all of " + their.name
 									+ "'s ships!");
 				} else if (gameMode == 2) {
-					if (our.bot = false) {
+					if (!bot) {
 						printBoard();
 						System.out.println(
 								"\n Congratulations " + our.name + "! You've destroyed all enemy ships!");
 					} else { // The AI won
 						System.out.println("\n Defeat! You've lost your fleet!");
 					}
-				} else { // gameMode == 3
+				} else { // gameMode == 3 || 4
 					p3.revealShips();
 					System.out.println(
 							"\n Congratulations " + our.name + "! You have the strongest fleet!");
