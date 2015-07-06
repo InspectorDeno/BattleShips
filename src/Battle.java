@@ -125,42 +125,70 @@ public class Battle {
 				break;
 		}
 		while (!gameOver) {
-			if (gameMode == 1) {
-				if (turn == 1) {
+			switch (turn) {
+				case 1:
 					p1.move();
-					printBoard();
-				} else {
-					p2.move();
-					printBoard();
-				}
-			} else if (gameMode == 2 || gameMode == 4) {
-				if (turn == 1) {
-					p1.move();
-				} else {
-					p2.move();
-					printBoard();
-				}
-			} else if (gameMode == 3) { // 3 Player Game
-				if (turn == 1) {
-					p1.move();
-					printBoard();
-				} else if (turn == 2) {
-					p2.move();
-					if (!p2.bot) {
+					if (gameMode == 1 || PvPvP) {
 						printBoard();
 					}
-				} else {
+					break;
+				case 2:
+					p2.move();
+					if (PvPvP) { // PvPvP
+						if (!p2.bot) {
+							printBoard();
+						}
+					} else { // PvP
+						printBoard();
+					}
+					break;
+				case 3: // PvPvP
 					p3.move();
-					// shotOnce is reset after two shots
 					if (p3.bot && !p3.shotOnce) {
 						printBoard();
 					} else if (!p3.bot) {
 						printBoard();
 					}
-				}
+					break;
 			}
 		}
+		// if (gameMode == 1) { // PvP
+		// if (turn == 1) {
+		// p1.move();
+		// printBoard();
+		// } else {
+		// p2.move();
+		// printBoard();
+		// }
+		// } else if (gameMode == 2 || gameMode == 4) { // PvP
+		// if (turn == 1) {
+		// p1.move();
+		// } else {
+		// p2.move();
+		// printBoard();
+		// }
+		// } else if (gameMode == 3) { // 3 Player Game
+		// if (turn == 1) {
+		// p1.move();
+		// printBoard();
+		// } else if (turn == 2) {
+		// p2.move();
+		// if (!p2.bot) {
+		// printBoard();
+		// }
+		// } else {
+		// p3.move();
+		// // shotOnce is reset after two shots
+		// if (p3.bot && !p3.shotOnce) {
+		// printBoard();
+		// } else if (!p3.bot) {
+		// printBoard();
+		// }
+		// }
+		// }
+
 		someStats();
+
 	}
 
 	private void init() {
@@ -450,7 +478,7 @@ public class Battle {
 		// Prints game board corresponding to desired board size
 		String space = "   ";
 		String boardwidth = "";
-		String topRow = "";
+		String topRow = "\n";
 		String colEnum = " ";
 
 		// Determines boardWidth
@@ -911,8 +939,7 @@ public class Battle {
 					}
 				}
 				turns.addFirst(this);
-			} else { // 2 Players
-				// Print this for player only games
+			} else { // PvP
 				if (gameMode != 2) {
 					message = "\n ›" + name + "'s turn";
 					if (gameMode == 3) {
@@ -925,6 +952,7 @@ public class Battle {
 			do {
 				System.out.println(" Enter move: ");
 				input = scan.nextLine();
+				// ShipList or Hint
 				if (input.length() == 1) {
 					char choise = input.charAt(0);
 					switch (choise) {
@@ -1212,7 +1240,7 @@ public class Battle {
 			their.board[row][col].selected = true;
 
 			message = String.format("%-20s%s", " ›" + our.name + "'s move:", move + " - " + message);
-			System.out.println(message);
+			System.out.print(message);
 
 		}
 
@@ -1709,15 +1737,12 @@ public class Battle {
 						// This is to ensure we sunk the correct ship
 						if (targetType == shipType) {
 							targetType = it.next();
-							System.out.println("Now I target " + targetType);
 						} else {// we rarely sink another ship
-							System.out.println("next on list is " + targetType);
 							;
 						}
 						// Our "last" move is where we first hit the next target
 						// this will be the Bot's next starting point
 						last = hitList.get(targetType);
-						System.out.println("last: " + last);
 						// The ship will only have been hit once, so twirl
 						justHit = false;
 						reset = true;
@@ -1725,7 +1750,15 @@ public class Battle {
 					}
 					// Checks if game is over
 					if (their.destroyedShips == numOfShips) {
-						their.gameIsOver = true;
+						if (PvPvP) {
+							// Remove first loser from turns list
+							turns.remove(their);
+							message += "\n " + their.name + " has no ships left!";
+							// PvPvP to PvP
+							PvPvP = false;
+						} else { // PvP
+							their.gameIsOver = true;
+						}
 					}
 					message += "\n\n " + our.name + " destroyed ";
 					if (gameMode == 2) {
@@ -1752,7 +1785,7 @@ public class Battle {
 			turnAround = false;
 			// Don't print this if AI vs AI
 			message = String.format("%-20s%s", " ›" + our.name + "'s move:", move + " - " + message);
-			System.out.println(message);
+			System.out.print(message);
 		}
 
 		private String trace(int row, int col, int direction) {
