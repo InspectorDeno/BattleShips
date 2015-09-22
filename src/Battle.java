@@ -10,7 +10,7 @@ public class Battle {
 	public static boolean PvPvP;
 	public static boolean gameOver;
 	public static boolean autoPlace;
-	public static boolean firstGame;
+	public static boolean firstGame; // HUe hue
 	public LinkedList<Player> turns;
 	public Player p1, p2, p3;
 	public Bot AI, AI2;
